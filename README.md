@@ -50,11 +50,14 @@ After install, import the two blueprints from `blueprints/automation/`:
 
 ## Status
 
-Work in progress. See `HANDOFF.md` for the build task list and the exact code
-changes still to land. The intent is that the minimal, high-value subset
+Implemented and covered by unit tests (53 tests, ruff clean); **not yet verified
+on hardware**. The cooling register ranges (H7 max 25, defrost max 20) and all
+three adjust-mode options still need on-device confirmation nights as described
+in `HANDOFF.md`. The intent is that the minimal, high-value subset
 (`number.vallox_heating_season_setpoint` + the two cooling services) gets
 submitted upstream to `home-assistant/core` once it's proven in production; this
-fork then collapses back toward upstream.
+fork then collapses back toward upstream. See `HANDOFF.md` and
+`HA_INTEGRATION_SPEC.md` for the full rationale.
 
 ## License
 
