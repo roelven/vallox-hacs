@@ -2,13 +2,12 @@
 
 import ipaddress
 
-from vallox_websocket_api import Vallox
-import voluptuous as vol
-
 from homeassistant.const import CONF_HOST, CONF_NAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
+from vallox_websocket_api import Vallox
+import voluptuous as vol
 
 from .const import DEFAULT_NAME, DOMAIN
 from .coordinator import ValloxConfigEntry, ValloxDataUpdateCoordinator
@@ -34,6 +33,7 @@ PLATFORMS: list[str] = [
     Platform.DATE,
     Platform.FAN,
     Platform.NUMBER,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]

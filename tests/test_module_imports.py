@@ -12,9 +12,8 @@ import importlib
 
 import pytest
 
-# Modules that already exist in the vendored scaffold. The new select platform
-# is added in a later step and gets its own import test there.
-EXISTING_PLATFORM_MODULES = (
+# All integration modules, including the new select platform.
+PLATFORM_MODULES = (
     "binary_sensor",
     "config_flow",
     "const",
@@ -23,25 +22,34 @@ EXISTING_PLATFORM_MODULES = (
     "entity",
     "fan",
     "number",
+    "select",
     "sensor",
     "services",
     "switch",
 )
 
 
-@pytest.mark.parametrize("module_name", EXISTING_PLATFORM_MODULES)
+@pytest.mark.parametrize("module_name", PLATFORM_MODULES)
 def test_module_imports(module_name: str) -> None:
-    """Each existing integration module imports without error."""
+    """Each integration module imports without error."""
     mod = importlib.import_module(f"custom_components.vallox.{module_name}")
     assert mod is not None
 
 
+def test_init_platforms_include_select() -> None:
+    """The new select platform must be registered in __init__.PLATFORMS."""
+    init = importlib.import_module("custom_components.vallox.__init__")
+    from homeassistant.const import Platform
+
+    assert Platform.SELECT in init.PLATFORMS
+
+
 @pytest.mark.parametrize(
     "module_name",
-    ("binary_sensor", "date", "fan", "number", "sensor", "switch"),
+    ("binary_sensor", "date", "fan", "number", "select", "sensor", "switch"),
 )
 def test_platform_setup_entry_callable(module_name: str) -> None:
-    """Each existing platform module exposes async_setup_entry."""
+    """Each platform module exposes async_setup_entry."""
     mod = importlib.import_module(f"custom_components.vallox.{module_name}")
     assert callable(getattr(mod, "async_setup_entry", None)), (
         f"{module_name}.async_setup_entry missing"
