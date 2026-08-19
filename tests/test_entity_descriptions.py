@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import importlib
 
-import pytest
 from homeassistant.const import EntityCategory
+import pytest
 
 
 @pytest.fixture(scope="module")

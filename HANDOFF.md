@@ -81,9 +81,11 @@ Add:
 ADJUST_MODE_SUPPLY = 0
 ADJUST_MODE_EXTRACT = 1
 ADJUST_MODE_COOLING = 2
-ADJUST_MODE_TO_STR = {ADJUST_MODE_SUPPLY: "supply",
-                      ADJUST_MODE_EXTRACT: "extract",
-                      ADJUST_MODE_COOLING: "cooling"}
+ADJUST_MODE_TO_STR = {
+    ADJUST_MODE_SUPPLY: "supply",
+    ADJUST_MODE_EXTRACT: "extract",
+    ADJUST_MODE_COOLING: "cooling",
+}
 ADJUST_MODE_STR_TO_VALUE = {v: k for k, v in ADJUST_MODE_TO_STR.items()}
 
 # Nocturnal cooling service names + the values they write.
@@ -92,8 +94,8 @@ SERVICE_STOP_NOCTURNAL_COOLING = "stop_nocturnal_cooling"
 
 HEATING_SEASON_SETPOINT = "A_CYC_POST_HEATER_WINTER_SETPOINT"
 AWAY_AIR_TEMP_TARGET = "A_CYC_AWAY_AIR_TEMP_TARGET"
-COOLING_HEATING_SEASON_SETPOINT = 5.0   # night value
-COOLING_AWAY_TARGET = 8.0                # night value
+COOLING_HEATING_SEASON_SETPOINT = 5.0  # night value
+COOLING_AWAY_TARGET = 8.0  # night value
 COMMISSIONED_HEATING_SEASON_SETPOINT = 15.0
 COMMISSIONED_AWAY_TARGET = 20.0
 ```
@@ -107,26 +109,30 @@ Add `Platform.SELECT` to the `PLATFORMS` list so the new select platform loads.
 Append two `ValloxNumberEntityDescription`s to `NUMBER_ENTITIES`:
 
 ```python
-ValloxNumberEntityDescription(
-    key="heating_season_setpoint",
-    translation_key="heating_season_setpoint",
-    metric_key="A_CYC_POST_HEATER_WINTER_SETPOINT",
-    device_class=NumberDeviceClass.TEMPERATURE,
-    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-    native_min_value=5.0,
-    native_max_value=25.0,
-    native_step=1.0,
-),
-ValloxNumberEntityDescription(
-    key="supply_air_defrost_temp",
-    translation_key="supply_air_defrost_temp",
-    metric_key="A_CYC_SUPPLY_AIR_DEFROST_TEMP",
-    device_class=NumberDeviceClass.TEMPERATURE,
-    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-    native_min_value=10.0,   # firmware enforces min 10
-    native_max_value=20.0,
-    native_step=1.0,
-),
+(
+    ValloxNumberEntityDescription(
+        key="heating_season_setpoint",
+        translation_key="heating_season_setpoint",
+        metric_key="A_CYC_POST_HEATER_WINTER_SETPOINT",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_step=1.0,
+    ),
+)
+(
+    ValloxNumberEntityDescription(
+        key="supply_air_defrost_temp",
+        translation_key="supply_air_defrost_temp",
+        metric_key="A_CYC_SUPPLY_AIR_DEFROST_TEMP",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_min_value=10.0,  # firmware enforces min 10
+        native_max_value=20.0,
+        native_step=1.0,
+    ),
+)
 ```
 
 ### 4. `custom_components/vallox/select.py` (NEW)
@@ -144,11 +150,13 @@ from .const import ADJUST_MODE_STR_TO_VALUE, ADJUST_MODE_TO_STR
 from .coordinator import ValloxConfigEntry, ValloxDataUpdateCoordinator
 from .entity import ValloxEntity
 
+
 @dataclass(frozen=True, kw_only=True)
 class ValloxSelectEntityDescription(SelectEntityDescription):
     metric_key: str
     options_map: dict[int, str]
     reverse_map: dict[str, int]
+
 
 class ValloxSelectEntity(ValloxEntity, SelectEntity):
     _attr_entity_category = ...  # EntityCategory.CONFIG
@@ -174,6 +182,7 @@ class ValloxSelectEntity(ValloxEntity, SelectEntity):
         )
         await self.coordinator.async_request_refresh()
 
+
 SELECT_ENTITIES = (
     ValloxSelectEntityDescription(
         key="supply_heating_adjust_mode",
@@ -183,6 +192,7 @@ SELECT_ENTITIES = (
         reverse_map=ADJUST_MODE_STR_TO_VALUE,
     ),
 )
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = entry.runtime_data

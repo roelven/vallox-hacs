@@ -22,9 +22,7 @@ def test_adjust_mode_enum_maps(const) -> None:
         const.ADJUST_MODE_COOLING: "cooling",
     }
     # reverse map is the exact inverse
-    assert const.ADJUST_MODE_STR_TO_VALUE == {
-        v: k for k, v in const.ADJUST_MODE_TO_STR.items()
-    }
+    assert const.ADJUST_MODE_STR_TO_VALUE == {v: k for k, v in const.ADJUST_MODE_TO_STR.items()}
 
 
 def test_service_names(const) -> None:

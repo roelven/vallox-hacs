@@ -51,6 +51,4 @@ async def async_setup_entry(
     """Set up Vallox filter change date entity."""
     coordinator = entry.runtime_data
 
-    async_add_entities(
-        [ValloxFilterChangeDateEntity(entry.data[CONF_NAME], coordinator)]
-    )
+    async_add_entities([ValloxFilterChangeDateEntity(entry.data[CONF_NAME], coordinator)])

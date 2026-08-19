@@ -3,14 +3,13 @@
 from collections.abc import Mapping
 from typing import Any, NamedTuple, override
 
-from vallox_websocket_api import ValloxApiException, ValloxInvalidInputException
-
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from vallox_websocket_api import ValloxApiException, ValloxInvalidInputException
 
 from .const import (
     METRIC_KEY_MODE,
@@ -151,9 +150,7 @@ class ValloxFanEntity(ValloxEntity, FanEntity):
             update_needed |= await self._async_set_preset_mode_internal(preset_mode)
 
         if percentage is not None:
-            update_needed |= await self._async_set_percentage_internal(
-                percentage, preset_mode
-            )
+            update_needed |= await self._async_set_percentage_internal(percentage, preset_mode)
 
         if update_needed:
             # This state change affects other entities like

@@ -63,7 +63,7 @@ def _make_entry(coord: ValloxDataUpdateCoordinator) -> MagicMock:
 
 
 def _set_raw(raw_map: dict[str, int | None], key: str, celsius: float) -> None:
-    raw_map[key] = int(round((celsius + 273.15) * 100))
+    raw_map[key] = round((celsius + 273.15) * 100)
 
 
 def _patch_read_raw(monkeypatch, raw_map: dict[str, int | None]) -> None:

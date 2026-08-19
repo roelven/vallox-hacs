@@ -55,16 +55,18 @@ writability probe before exposing as settable.
 **Entity description**
 
 ```python
-ValloxNumberEntityDescription(
-    key="heating_season_setpoint",
-    translation_key="heating_season_setpoint",
-    metric_key="A_CYC_POST_HEATER_WINTER_SETPOINT",
-    device_class=NumberDeviceClass.TEMPERATURE,
-    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-    native_min_value=5.0,
-    native_max_value=25.0,
-    native_step=1.0,
-),
+(
+    ValloxNumberEntityDescription(
+        key="heating_season_setpoint",
+        translation_key="heating_season_setpoint",
+        metric_key="A_CYC_POST_HEATER_WINTER_SETPOINT",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_step=1.0,
+    ),
+)
 ```
 
 `strings.json`:

@@ -3,14 +3,13 @@
 import logging
 from typing import Any, override
 
-from vallox_websocket_api import Vallox, ValloxApiException
-import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util.network import is_ip_address
+from vallox_websocket_api import Vallox, ValloxApiException
+import voluptuous as vol
 
 from .const import DEFAULT_NAME, DOMAIN
 
@@ -39,9 +38,7 @@ class ValloxConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     @override
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         if user_input is None:
             return self.async_show_form(
@@ -75,9 +72,7 @@ class ValloxConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(
-                CONFIG_SCHEMA, {CONF_HOST: host}
-            ),
+            data_schema=self.add_suggested_values_to_schema(CONFIG_SCHEMA, {CONF_HOST: host}),
             errors=errors,
         )
 
