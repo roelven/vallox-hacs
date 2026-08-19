@@ -1,10 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Vallox-HACS contributors
-
-Portions of this software are derived from the Home Assistant Vallox integration
-(https://github.com/home-assistant/core/tree/dev/homeassistant/components/vallox),
-which is licensed under the MIT License and copyright its respective authors.
+Copyright (c) 2026 Roel van der Ven and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

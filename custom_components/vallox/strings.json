@@ -59,12 +59,10 @@
         "name": "Supply air temperature (Home)"
       },
       "heating_season_setpoint": {
-        "name": "Heating season setpoint",
-        "description": "Outdoor-air temperature below which the unit treats the season as winter: it closes the bypass damper and runs heat recovery to warm the incoming air. Lowering it (e.g. to 5 \u00b0C for the night) keeps the bypass engaged so the unit can purge heat on a cool summer night. **Must be reverted before the heating season** \u2014 a low value left in place through winter causes under-recovery and excessive post-heating."
+        "name": "Heating season setpoint"
       },
       "supply_air_defrost_temp": {
-        "name": "Supply air defrost temperature",
-        "description": "Supply-air temperature at which the unit activates frost protection (defrost). A winter freeze-protection threshold \u2014 **not a cooling control**: lowering it does not engage the bypass (verified)."
+        "name": "Supply air defrost temperature"
       }
     },
     "select": {
