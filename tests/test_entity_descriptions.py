@@ -4,9 +4,12 @@ Asserts the new number/select/binary_sensor descriptions carry the expected
 metric keys, keys, and ranges. Pure-logic: no HA runtime needed.
 """
 
+from __future__ import annotations
+
 import importlib
 
 import pytest
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture(scope="module")
@@ -17,6 +20,11 @@ def number_module():
 @pytest.fixture(scope="module")
 def select_module():
     return importlib.import_module("custom_components.vallox.select")
+
+
+@pytest.fixture(scope="module")
+def binary_sensor_module():
+    return importlib.import_module("custom_components.vallox.binary_sensor")
 
 
 def _by_key(descs, key):
@@ -44,3 +52,17 @@ def test_supply_heating_adjust_mode_select(select_module):
     assert d.metric_key == "A_CYC_SUPPLY_HEATING_ADJUST_MODE"
     assert set(d.options_map.values()) == {"supply", "extract", "cooling"}
     assert d.reverse_map["cooling"] == 2
+
+
+def test_in_bypass_description(binary_sensor_module):
+    d = _by_key(binary_sensor_module.BINARY_SENSOR_ENTITIES, "in_bypass")
+    assert d.metric_key == "A_CYC_IN_BYPASS"
+    assert d.translation_key == "in_bypass"
+    assert d.entity_category is EntityCategory.DIAGNOSTIC
+
+
+def test_dewpoint_limit_in_use_description(binary_sensor_module):
+    d = _by_key(binary_sensor_module.BINARY_SENSOR_ENTITIES, "dewpoint_limit_in_use")
+    assert d.metric_key == "A_CYC_DEWPOINT_LIMIT_IN_USE"
+    assert d.translation_key == "dewpoint_limit_in_use"
+    assert d.entity_category is EntityCategory.DIAGNOSTIC

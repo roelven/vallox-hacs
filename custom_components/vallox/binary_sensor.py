@@ -56,6 +56,18 @@ BINARY_SENSOR_ENTITIES: tuple[ValloxBinarySensorEntityDescription, ...] = (
         translation_key="post_heater",
         metric_key="A_CYC_IO_HEATER",
     ),
+    ValloxBinarySensorEntityDescription(
+        key="in_bypass",
+        translation_key="in_bypass",
+        metric_key="A_CYC_IN_BYPASS",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ValloxBinarySensorEntityDescription(
+        key="dewpoint_limit_in_use",
+        translation_key="dewpoint_limit_in_use",
+        metric_key="A_CYC_DEWPOINT_LIMIT_IN_USE",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 
