@@ -18,6 +18,20 @@ blueprint:
       selector:
         entity:
           domain: input_boolean
+    fan_speed:
+      name: Away fan speed (cooling intensity, %)
+      description: >
+        Sets the Away profile's fan speed before engaging cooling — the unit
+        runs at this % all night while the cooling service is active. The Away
+        profile is the cooling profile, so this is your cooling intensity dial.
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
     start_time:
       name: Earliest start
       description: Cooling may begin no earlier than this. Actual engagement waits until outdoor falls below extract.
@@ -113,6 +127,9 @@ conditions:
       {{ now().month | string in months }}
 
 actions:
+  - action: vallox.set_profile_fan_speed_away
+    data:
+      fan_speed: !input fan_speed
   - action: vallox.start_nocturnal_cooling
     data: {}
 
