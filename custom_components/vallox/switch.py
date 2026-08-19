@@ -1,5 +1,7 @@
 """Support for Vallox ventilation unit switches."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, override
 
@@ -35,9 +37,7 @@ class ValloxSwitchEntity(ValloxEntity, SwitchEntity):
     @override
     def is_on(self) -> bool | None:
         """Return true if the switch is on."""
-        if (
-            value := self.coordinator.data.get(self.entity_description.metric_key)
-        ) is None:
+        if (value := self.coordinator.data.get(self.entity_description.metric_key)) is None:
             return None
         return value == 1
 

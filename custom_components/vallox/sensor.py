@@ -1,5 +1,7 @@
 """Support for Vallox ventilation unit sensors."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, time
 from typing import override
@@ -11,10 +13,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    CONCENTRATION_PARTS_PER_MILLION,
     CONF_NAME,
+    PERCENTAGE,
     REVOLUTIONS_PER_MINUTE,
     EntityCategory,
-    UnitOfRatio,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -61,9 +64,7 @@ class ValloxSensorEntity(ValloxEntity, SensorEntity):
 
         value = self.coordinator.data.get(metric_key)
 
-        if self.entity_description.round_ndigits is not None and isinstance(
-            value, float
-        ):
+        if self.entity_description.round_ndigits is not None and isinstance(value, float):
             value = round(value, self.entity_description.round_ndigits)
 
         return value
@@ -141,9 +142,7 @@ class ValloxProfileDurationSensor(ValloxSensorEntity):
     def native_value(self) -> StateType:
         """Return the value reported by the sensor."""
 
-        return self.coordinator.data.get_remaining_profile_duration(
-            self.coordinator.data.profile
-        )
+        return self.coordinator.data.get_remaining_profile_duration(self.coordinator.data.profile)
 
 
 @dataclass(frozen=True)
@@ -166,7 +165,7 @@ SENSOR_ENTITIES: tuple[ValloxSensorEntityDescription, ...] = (
         translation_key="fan_speed",
         metric_key="A_CYC_FAN_SPEED",
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
+        native_unit_of_measurement=PERCENTAGE,
         entity_type=ValloxFanSpeedSensor,
     ),
     ValloxSensorEntityDescription(
@@ -253,14 +252,14 @@ SENSOR_ENTITIES: tuple[ValloxSensorEntityDescription, ...] = (
         metric_key="A_CYC_RH_VALUE",
         device_class=SensorDeviceClass.HUMIDITY,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
+        native_unit_of_measurement=PERCENTAGE,
     ),
     ValloxSensorEntityDescription(
         key="efficiency",
         translation_key="efficiency",
         metric_key="A_CYC_EXTRACT_EFFICIENCY",
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
+        native_unit_of_measurement=PERCENTAGE,
         entity_registry_enabled_default=False,
         round_ndigits=0,
     ),
@@ -269,7 +268,7 @@ SENSOR_ENTITIES: tuple[ValloxSensorEntityDescription, ...] = (
         metric_key="A_CYC_CO2_VALUE",
         device_class=SensorDeviceClass.CO2,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
+        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
         entity_registry_enabled_default=False,
     ),
     ValloxSensorEntityDescription(
@@ -293,6 +292,5 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
 
     async_add_entities(
-        description.entity_type(name, coordinator, description)
-        for description in SENSOR_ENTITIES
+        description.entity_type(name, coordinator, description) for description in SENSOR_ENTITIES
     )

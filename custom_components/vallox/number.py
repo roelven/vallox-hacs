@@ -1,5 +1,7 @@
 """Support for Vallox ventilation unit numbers."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import override
 
@@ -39,9 +41,7 @@ class ValloxNumberEntity(ValloxEntity, NumberEntity):
     @override
     def native_value(self) -> float | None:
         """Return the value reported by the sensor."""
-        if (
-            value := self.coordinator.data.get(self.entity_description.metric_key)
-        ) is None:
+        if (value := self.coordinator.data.get(self.entity_description.metric_key)) is None:
             return None
 
         return float(value)
@@ -49,9 +49,7 @@ class ValloxNumberEntity(ValloxEntity, NumberEntity):
     @override
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
-        await self.coordinator.client.set_values(
-            {self.entity_description.metric_key: float(value)}
-        )
+        await self.coordinator.client.set_values({self.entity_description.metric_key: float(value)})
         await self.coordinator.async_request_refresh()
 
 
