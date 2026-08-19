@@ -1,0 +1,10 @@
+# Test/development dependencies for the Vallox HACS integration.
+# Pin versions that match what CI/local devs run the suite against.
+homeassistant==2026.2.3
+vallox-websocket-api==6.1.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+ruff==0.16.3
+# homeassistant 2026.2 pulls aiodns/pycares; pin working combo (see pycares ABI notes)
+aiodns==4.0.0
+pycares==5.0.1
