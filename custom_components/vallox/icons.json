@@ -1,0 +1,38 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "post_heater": { "default": "mdi:radiator" },
+      "in_bypass": { "default": "mdi:swap-horizontal-bold" },
+      "dewpoint_limit_in_use": { "default": "mdi:water-percent" }
+    },
+    "date": {
+      "filter_change_date": { "default": "mdi:air-filter" }
+    },
+    "number": {
+      "heating_season_setpoint": { "default": "mdi:thermostat" },
+      "supply_air_defrost_temp": { "default": "mdi:snowflake-thermometer" }
+    },
+    "select": {
+      "supply_heating_adjust_mode": { "default": "mdi:tune" }
+    },
+    "sensor": {
+      "cell_state": { "default": "mdi:swap-horizontal-bold" },
+      "current_profile": { "default": "mdi:gauge" },
+      "efficiency": { "default": "mdi:gauge" },
+      "extract_fan_speed": { "default": "mdi:fan" },
+      "fan_speed": { "default": "mdi:fan" },
+      "supply_fan_speed": { "default": "mdi:fan" }
+    },
+    "switch": {
+      "bypass_locked": { "default": "mdi:arrow-horizontal-lock" }
+    }
+  },
+  "services": {
+    "set_profile": { "service": "mdi:fan" },
+    "set_profile_fan_speed_away": { "service": "mdi:walk" },
+    "set_profile_fan_speed_boost": { "service": "mdi:speedometer" },
+    "set_profile_fan_speed_home": { "service": "mdi:home" },
+    "start_nocturnal_cooling": { "service": "mdi:weather-night" },
+    "stop_nocturnal_cooling": { "service": "mdi:weather-sunny" }
+  }
+}

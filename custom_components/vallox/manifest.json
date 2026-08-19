@@ -1,0 +1,13 @@
+{
+  "domain": "vallox",
+  "name": "Vallox",
+  "version": "0.1.0",
+  "documentation": "https://github.com/OWNER/vallox-hacs",
+  "issue_tracker": "https://github.com/OWNER/vallox-hacs/issues",
+  "codeowners": ["@OWNER"],
+  "config_flow": true,
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "loggers": ["vallox_websocket_api"],
+  "requirements": ["vallox-websocket-api==6.1.0"]
+}

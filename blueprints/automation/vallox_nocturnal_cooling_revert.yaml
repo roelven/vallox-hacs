@@ -1,0 +1,37 @@
+blueprint:
+  name: Vallox nocturnal cooling — revert
+  description: >
+    The safety side of the Vallox nocturnal cooling blueprint. Reverts the unit
+    to the commissioned baseline at the end time, again a few minutes later as a
+    backup, and on every Home Assistant start. All three call
+    vallox.stop_nocturnal_cooling, which is idempotent (a no-op if cooling was
+    not started). This is the critical guard that prevents a 5 °C heating-season
+    setpoint from being left in place into the heating season.
+  domain: automation
+  input:
+    end_time:
+      name: Revert time (primary)
+      default: "05:00:00"
+      selector:
+        time: {}
+    backup_time:
+      name: Revert time (backup)
+      description: A second revert, a few minutes after the primary, in case the first is missed.
+      default: "05:05:00"
+      selector:
+        time: {}
+
+triggers:
+  - platform: time
+    at: !input end_time
+  - platform: time
+    at: !input backup_time
+  - platform: homeassistant
+    event: start
+
+actions:
+  - action: vallox.stop_nocturnal_cooling
+    data: {}
+
+mode: single
+max_exceeded: silent

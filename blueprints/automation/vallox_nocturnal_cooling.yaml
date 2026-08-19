@@ -1,0 +1,120 @@
+blueprint:
+  name: Vallox nocturnal cooling
+  description: >
+    Cool the house at night by letting the Vallox unit deliver near-outdoor air
+    instead of heat-recovering it back to ~21 °C. Begins no earlier than the
+    start time and only once outdoor has fallen below extract (so we never pump
+    hot air in), by calling the integration's verified
+    vallox.start_nocturnal_cooling service. Pair this with the
+    "Vallox nocturnal cooling — revert" blueprint for the three-layer revert.
+    Requires the extended Vallox integration
+    (number.vallox_heating_season_setpoint + the start/stop_nocturnal_cooling
+    services).
+  domain: automation
+  input:
+    armed:
+      name: Master switch (input_boolean)
+      description: Cooling only runs while this boolean is on.
+      selector:
+        entity:
+          domain: input_boolean
+    start_time:
+      name: Earliest start
+      description: Cooling may begin no earlier than this. Actual engagement waits until outdoor falls below extract.
+      default: "22:00:00"
+      selector:
+        time: {}
+    end_time:
+      name: Revert time
+      description: Must match the revert blueprint's primary revert time. Used only to bound the engagement window here.
+      default: "05:00:00"
+      selector:
+        time: {}
+    outdoor_sensor:
+      name: Outdoor air temperature sensor
+      default: sensor.vallox_outdoor_air
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    extract_sensor:
+      name: Extract air temperature sensor
+      default: sensor.vallox_extract_air
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    min_outdoor_c:
+      name: Minimum outdoor temperature to start (°C)
+      description: Shoulder/winter guard. Do not start if outdoor is already this cold.
+      default: 10
+      selector:
+        number:
+          min: -10
+          max: 20
+          step: 1
+          unit_of_measurement: "°C"
+    season_months:
+      name: Allowed months
+      description: Only run during these months. Tune to your climate.
+      default: [4, 5, 6, 7, 8, 9]
+      selector:
+        select:
+          multiple: true
+          options:
+            - { value: "1", label: "Jan" }
+            - { value: "2", label: "Feb" }
+            - { value: "3", label: "Mar" }
+            - { value: "4", label: "Apr" }
+            - { value: "5", label: "May" }
+            - { value: "6", label: "Jun" }
+            - { value: "7", label: "Jul" }
+            - { value: "8", label: "Aug" }
+            - { value: "9", label: "Sep" }
+            - { value: "10", label: "Oct" }
+            - { value: "11", label: "Nov" }
+            - { value: "12", label: "Dec" }
+
+variables:
+  start_t: !input start_time
+  end_t: !input end_time
+  out: !input outdoor_sensor
+  ext: !input extract_sensor
+  min_out: !input min_outdoor_c
+  months: !input season_months
+
+triggers:
+  - platform: time
+    at: !input start_time
+  - platform: numeric_state
+    entity_id: !input outdoor_sensor
+    below: !input extract_sensor
+    for:
+      minutes: 2
+
+conditions:
+  - condition: state
+    entity_id: !input armed
+    state: "on"
+  - condition: template
+    value_template: >
+      {% set t = now().time() %}
+      {% set s = strptime(start_t, '%H:%M:%S').time() %}
+      {% set e = strptime(end_t, '%H:%M:%S').time() %}
+      {{ (s <= e and s <= t <= e) or (s > e and (t >= s or t <= e)) }}
+  - condition: template
+    value_template: >
+      {{ states(out) | float(99) <= states(ext) | float(-99) }}
+  - condition: template
+    value_template: >
+      {{ states(out) | float(99) >= min_out }}
+  - condition: template
+    value_template: >
+      {{ now().month | string in months }}
+
+actions:
+  - action: vallox.start_nocturnal_cooling
+    data: {}
+
+mode: single
+max_exceeded: silent
