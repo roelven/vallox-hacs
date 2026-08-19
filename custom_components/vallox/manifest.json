@@ -1,7 +1,7 @@
 {
   "domain": "vallox",
   "name": "Vallox",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "documentation": "https://github.com/OWNER/vallox-hacs",
   "issue_tracker": "https://github.com/OWNER/vallox-hacs/issues",
   "codeowners": ["@OWNER"],
