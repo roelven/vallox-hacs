@@ -91,6 +91,27 @@ NUMBER_ENTITIES: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=25.0,
         native_step=1.0,
     ),
+    ValloxNumberEntityDescription(
+        key="heating_season_setpoint",
+        translation_key="heating_season_setpoint",
+        metric_key="A_CYC_POST_HEATER_WINTER_SETPOINT",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        native_min_value=5.0,
+        native_max_value=25.0,
+        native_step=1.0,
+    ),
+    ValloxNumberEntityDescription(
+        key="supply_air_defrost_temp",
+        translation_key="supply_air_defrost_temp",
+        metric_key="A_CYC_SUPPLY_AIR_DEFROST_TEMP",
+        device_class=NumberDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        # Firmware silently clamps writes below 10 C; surface that as the min.
+        native_min_value=10.0,
+        native_max_value=20.0,
+        native_step=1.0,
+    ),
 )
 
 
