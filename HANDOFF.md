@@ -9,10 +9,10 @@ services work.** Everything below is concrete.
 
 ## Authoritative references (read these first)
 
-- `../vallox-logger/HA_INTEGRATION_SPEC.md` — *what* to add, with per-register
+- `HA_INTEGRATION_SPEC.md` — *what* to add, with per-register
   rationale, ranges, writability evidence, and the rejected list. This is the
   source of truth for the entity set.
-- `../vallox-logger/HA_AUTOMATION_PLAN.md` — the migration, testing, and the
+- `HA_AUTOMATION_PLAN.md` — the migration, testing, and the
   cooling-routine design (service contract, profile snapshot, safety gates).
 - `../vallox-logger/INVESTIGATION.md` / `REPORT_FINAL_SOLUTION.md` /
   `FINDINGS.md` — the empirical evidence (which levers work, which were
@@ -264,7 +264,7 @@ Add icons for the new entities/services (e.g. `heating_season_setpoint` →
   `192.168.20.172`, firmware 3.1.6. The user has a solid HA backup strategy.
 - Install this fork over the built-in (same `vallox` domain), restart. The
   existing config entry re-initialises; entity IDs are preserved (verified the
-  live entities in `../vallox-logger/HA_AUTOMATION_PLAN.md` §2). **Do not**
+  live entities in `HA_AUTOMATION_PLAN.md` §2). **Do not**
   delete the existing config entry.
 - The raw logger `../vallox-logger/collector.py` (still running on the
   non-persistent VM while it lives) captures the full register table every 60 s.

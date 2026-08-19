@@ -27,8 +27,8 @@ adds the new ones on top.
 
 The full register-level rationale (which levers work, which were falsified, the
 safety constraints) is in the sister repository:
-[`../vallox-logger/HA_INTEGRATION_SPEC.md`](../vallox-logger/HA_INTEGRATION_SPEC.md)
-and [`../vallox-logger/HA_AUTOMATION_PLAN.md`](../vallox-logger/HA_AUTOMATION_PLAN.md).
+[`HA_INTEGRATION_SPEC.md`](HA_INTEGRATION_SPEC.md)
+and [`HA_AUTOMATION_PLAN.md`](HA_AUTOMATION_PLAN.md).
 
 ## Install (over the built-in)
 
