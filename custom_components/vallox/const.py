@@ -51,6 +51,33 @@ VALLOX_CELL_STATE_TO_STR = {
     3: "Defrosting",
 }
 
+# Heating-control mode (A_CYC_SUPPLY_HEATING_ADJUST_MODE) enum.
+ADJUST_MODE_SUPPLY = 0
+ADJUST_MODE_EXTRACT = 1
+ADJUST_MODE_COOLING = 2
+ADJUST_MODE_TO_STR = {
+    ADJUST_MODE_SUPPLY: "supply",
+    ADJUST_MODE_EXTRACT: "extract",
+    ADJUST_MODE_COOLING: "cooling",
+}
+ADJUST_MODE_STR_TO_VALUE = {v: k for k, v in ADJUST_MODE_TO_STR.items()}
+
+# Nocturnal cooling service names + the register values they write.
+SERVICE_START_NOCTURNAL_COOLING = "start_nocturnal_cooling"
+SERVICE_STOP_NOCTURNAL_COOLING = "stop_nocturnal_cooling"
+
+HEATING_SEASON_SETPOINT = "A_CYC_POST_HEATER_WINTER_SETPOINT"
+AWAY_AIR_TEMP_TARGET = "A_CYC_AWAY_AIR_TEMP_TARGET"
+
+# Night (cooling) values: low enough that the unit keeps the bypass open on a
+# cool summer night and delivers near-outdoor-temperature supply air.
+COOLING_HEATING_SEASON_SETPOINT = 5.0
+COOLING_AWAY_TARGET = 8.0
+
+# Commissioned baseline restored by stop_nocturnal_cooling.
+COMMISSIONED_HEATING_SEASON_SETPOINT = 15.0
+COMMISSIONED_AWAY_TARGET = 20.0
+
 # The vallox_websocket_api client uses a hardcoded value of 65535 to
 # represent an indefinite duration.
 PROFILE_DURATION_INDEFINITE = 65535
