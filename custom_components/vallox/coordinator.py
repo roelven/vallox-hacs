@@ -3,12 +3,11 @@
 import logging
 from typing import override
 
-from vallox_websocket_api import MetricData, Vallox, ValloxApiException
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from vallox_websocket_api import MetricData, Profile, Vallox, ValloxApiException
 
 from .const import STATE_SCAN_INTERVAL
 
@@ -21,6 +20,12 @@ class ValloxDataUpdateCoordinator(DataUpdateCoordinator[MetricData]):
     """The DataUpdateCoordinator for Vallox."""
 
     config_entry: ValloxConfigEntry
+
+    # Profile snapshotted by start_nocturnal_cooling so stop can restore it.
+    # Stored on the coordinator (the config entry's runtime_data), never on a
+    # user-facing helper, so it survives across the cooling window but not a
+    # restart.
+    nocturnal_cooling_prev_profile: Profile | None = None
 
     def __init__(
         self,

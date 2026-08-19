@@ -1,68 +1,167 @@
 """Tests for the start/stop_nocturnal_cooling service against a mocked client.
 
 These define the contract the implementation in services.py must satisfy:
-  * start writes H7=5 + Away target=8, switches to Away, and readback-verifies;
-  * stop reverts H7=15 + Away target=20 and restores the snapshotted profile;
-  * stop without a prior start is a no-op (or a commissioned restore);
-  * a readback mismatch raises.
+  * start writes H7=5 + Away target=8, verifies by raw readback, switches to Away,
+    and snapshots the current profile on the coordinator;
+  * stop reverts H7=15 + Away target=20, verifies, and restores the snapshotted
+    profile, then clears the snapshot;
+  * stop without a prior start is a no-op;
+  * a readback mismatch raises HomeAssistantError with
+    nocturnal_cooling_verify_failed.
 
-The actual verification read path should use the raw register table read (not
-client.fetch_metrics, which returns 0 for centi-Kelvin registers on this
-firmware). Mock both client.set_values and the raw readback helper.
+The raw read path (services.read_raw) is monkeypatched so no network is touched.
 """
 
+from __future__ import annotations
+
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+from vallox_websocket_api import Profile
+
+from custom_components.vallox import services
+from custom_components.vallox.const import (
+    AWAY_AIR_TEMP_TARGET,
+    COMMISSIONED_AWAY_TARGET,
+    COMMISSIONED_HEATING_SEASON_SETPOINT,
+    COOLING_AWAY_TARGET,
+    COOLING_HEATING_SEASON_SETPOINT,
+    HEATING_SEASON_SETPOINT,
+)
+from custom_components.vallox.coordinator import ValloxDataUpdateCoordinator
 
 
-class FakeVallox:
-    """Minimal stand-in for vallox_websocket_api.Vallox."""
+class FakeMetricData:
+    """Stand-in for vallox_websocket_api.MetricData with .profile and .get()."""
 
-    def __init__(self):
-        self.written = {}
-        self._raw = {}          # metric_key -> raw centi-Kelvin int (or int)
-        self.profile = "Home"
-        self._profiles_set = []
+    def __init__(self, profile: Profile) -> None:
+        self._profile = profile
 
-    async def set_values(self, mapping):
-        self.written.update(mapping)
+    @property
+    def profile(self) -> Profile:
+        return self._profile
 
-    async def set_profile(self, profile):
-        self.profile = profile
-        self._profiles_set.append(profile)
-
-    async def read_raw(self, keys):
-        return dict(self._raw)
+    def get(self, _key: str, default: Any = None) -> Any:
+        return default
 
 
-def _set_raw(fake, key, celsius):
-    fake._raw[key] = int(round((celsius + 273.15) * 100))
+def _make_coordinator(fake_client: MagicMock, profile: Profile) -> ValloxDataUpdateCoordinator:
+    """Build a minimal coordinator wired to the fake client."""
+    coord = ValloxDataUpdateCoordinator.__new__(ValloxDataUpdateCoordinator)
+    coord.client = fake_client
+    coord.data = FakeMetricData(profile)
+    coord.nocturnal_cooling_prev_profile = None
+    coord.async_request_refresh = AsyncMock()  # type: ignore[method-assign]
+    return coord
 
 
-# NOTE: import the real async_setup_services once services.py implements it.
-# Until then, these tests document the expected behaviour and are skipped.
-
-pytestmark = pytest.mark.skip(reason="services.py not yet implemented")
-
-
-def test_start_writes_and_verifies():
-    fake = FakeVallox()
-    _set_raw(fake, "A_CYC_POST_HEATER_WINTER_SETPOINT", 5.0)
-    _set_raw(fake, "A_CYC_AWAY_AIR_TEMP_TARGET", 8.0)
-    # expect: written {H7: 5.0, AWAY_TARGET: 8.0}, set_profile(Away), readback ok
+def _make_entry(coord: ValloxDataUpdateCoordinator) -> MagicMock:
+    entry = MagicMock()
+    entry.runtime_data = coord
+    return entry
 
 
-def test_stop_reverts_and_restores_profile():
-    fake = FakeVallox()
-    # after a start with prev_profile=Home:
-    # expect: written {H7: 15.0, AWAY_TARGET: 20.0}, set_profile(Home)
+def _set_raw(raw_map: dict[str, int | None], key: str, celsius: float) -> None:
+    raw_map[key] = int(round((celsius + 273.15) * 100))
 
 
-def test_stop_without_start_is_noop():
-    fake = FakeVallox()
-    # expect: no writes, no profile change
+def _patch_read_raw(monkeypatch, raw_map: dict[str, int | None]) -> None:
+    """Make services.read_raw return the provided raw map."""
+
+    async def _fake_read_raw(_client, keys):
+        return {k: raw_map.get(k) for k in keys}
+
+    monkeypatch.setattr(services, "read_raw", _fake_read_raw)
 
 
-def test_readback_mismatch_raises():
-    fake = FakeVallox()
-    _set_raw(fake, "A_CYC_POST_HEATER_WINTER_SETPOINT", 15.0)  # didn't take
-    # expect: HomeAssistantError via nocturnal_cooling_verify_failed
+@pytest.mark.parametrize("start_profile", [Profile.HOME, Profile.AUTO])
+async def test_start_writes_verifies_and_snapshots(start_profile, monkeypatch) -> None:
+    fake_client = MagicMock()
+    fake_client.set_values = AsyncMock()
+    fake_client.set_profile = AsyncMock()
+
+    coord = _make_coordinator(fake_client, start_profile)
+    entry = _make_entry(coord)
+
+    raw: dict[str, int | None] = {}
+    _set_raw(raw, HEATING_SEASON_SETPOINT, COOLING_HEATING_SEASON_SETPOINT)
+    _set_raw(raw, AWAY_AIR_TEMP_TARGET, COOLING_AWAY_TARGET)
+    _patch_read_raw(monkeypatch, raw)
+
+    await services.async_start_nocturnal_cooling(entry)
+
+    fake_client.set_values.assert_awaited()
+    written = fake_client.set_values.await_args.args[0]
+    assert written == {
+        HEATING_SEASON_SETPOINT: COOLING_HEATING_SEASON_SETPOINT,
+        AWAY_AIR_TEMP_TARGET: COOLING_AWAY_TARGET,
+    }
+    fake_client.set_profile.assert_awaited_once_with(Profile.AWAY)
+    assert coord.nocturnal_cooling_prev_profile is start_profile
+    coord.async_request_refresh.assert_awaited()
+
+
+async def test_stop_reverts_verifies_and_restores(monkeypatch) -> None:
+    fake_client = MagicMock()
+    fake_client.set_values = AsyncMock()
+    fake_client.set_profile = AsyncMock()
+
+    coord = _make_coordinator(fake_client, Profile.AWAY)
+    coord.nocturnal_cooling_prev_profile = Profile.HOME  # snapshotted by a prior start
+    entry = _make_entry(coord)
+
+    raw: dict[str, int | None] = {}
+    _set_raw(raw, HEATING_SEASON_SETPOINT, COMMISSIONED_HEATING_SEASON_SETPOINT)
+    _set_raw(raw, AWAY_AIR_TEMP_TARGET, COMMISSIONED_AWAY_TARGET)
+    _patch_read_raw(monkeypatch, raw)
+
+    await services.async_stop_nocturnal_cooling(entry)
+
+    written = fake_client.set_values.await_args.args[0]
+    assert written == {
+        HEATING_SEASON_SETPOINT: COMMISSIONED_HEATING_SEASON_SETPOINT,
+        AWAY_AIR_TEMP_TARGET: COMMISSIONED_AWAY_TARGET,
+    }
+    fake_client.set_profile.assert_awaited_once_with(Profile.HOME)
+    assert coord.nocturnal_cooling_prev_profile is None
+    coord.async_request_refresh.assert_awaited()
+
+
+async def test_stop_without_start_is_noop(monkeypatch) -> None:
+    fake_client = MagicMock()
+    fake_client.set_values = AsyncMock()
+    fake_client.set_profile = AsyncMock()
+
+    coord = _make_coordinator(fake_client, Profile.HOME)
+    entry = _make_entry(coord)
+
+    await services.async_stop_nocturnal_cooling(entry)
+
+    fake_client.set_values.assert_not_awaited()
+    fake_client.set_profile.assert_not_awaited()
+    coord.async_request_refresh.assert_not_awaited()
+
+
+async def test_readback_mismatch_raises(monkeypatch) -> None:
+    from homeassistant.exceptions import HomeAssistantError
+
+    fake_client = MagicMock()
+    fake_client.set_values = AsyncMock()
+    fake_client.set_profile = AsyncMock()
+
+    coord = _make_coordinator(fake_client, Profile.HOME)
+    entry = _make_entry(coord)
+
+    # The write "didn't take": H7 read back as 15 C instead of 5 C.
+    raw: dict[str, int | None] = {}
+    _set_raw(raw, HEATING_SEASON_SETPOINT, COMMISSIONED_HEATING_SEASON_SETPOINT)
+    _set_raw(raw, AWAY_AIR_TEMP_TARGET, COOLING_AWAY_TARGET)
+    _patch_read_raw(monkeypatch, raw)
+
+    with pytest.raises(HomeAssistantError) as exc:
+        await services.async_start_nocturnal_cooling(entry)
+
+    assert exc.value.translation_key == "nocturnal_cooling_verify_failed"
+    # The profile must not have been switched when verification failed.
+    fake_client.set_profile.assert_not_awaited()
