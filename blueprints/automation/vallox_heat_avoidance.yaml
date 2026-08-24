@@ -1,0 +1,108 @@
+blueprint:
+  name: Vallox heat-avoidance
+  description: >
+    Reduce MVHR ventilation when the outdoor air is warmer than the indoor
+    (extract) air, so the unit stops pumping heat into the house on hot days.
+    Restores the normal fan speed once outdoor drops back below indoor.
+    Only acts while the unit is on the Home profile, so it never fights the
+    nocturnal-cooling automation (which runs on Away). A hysteresis margin
+    avoids flapping around the crossover point.
+  domain: automation
+  input:
+    outdoor_sensor:
+      name: Outdoor air temperature sensor
+      default: sensor.vallox_outdoor_air
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    indoor_sensor:
+      name: Indoor (extract) air temperature sensor
+      default: sensor.vallox_extract_air
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    fan_entity:
+      name: Vallox fan entity
+      default: fan.vallox
+      selector:
+        entity:
+          domain: fan
+    low_fan_pct:
+      name: Low fan speed when outdoor > indoor (%)
+      default: 25
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+    normal_fan_pct:
+      name: Fan speed to restore when outdoor < indoor (%)
+      default: 45
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+    margin:
+      name: Hysteresis margin (°C)
+      description: >-
+        Outdoor must exceed indoor by this much before the fan is reduced,
+        and must fall below indoor before it is restored.
+      default: 1.0
+      selector:
+        number:
+          min: 0
+          max: 5
+          step: 0.5
+          unit_of_measurement: "°C"
+          mode: slider
+
+variables:
+  outdoor: !input outdoor_sensor
+  indoor: !input indoor_sensor
+  fan: !input fan_entity
+  margin: !input margin
+
+trigger:
+  - platform: template
+    value_template: "{{ (states(outdoor) | float(0)) > (states(indoor) | float(0)) + (margin | float(0)) }}"
+    id: above
+  - platform: template
+    value_template: "{{ (states(outdoor) | float(0)) < (states(indoor) | float(0)) }}"
+    id: below
+  - platform: state
+    entity_id: !input fan_entity
+    attribute: preset_mode
+    to: Home
+    id: home
+
+action:
+  - choose:
+    - conditions:
+        - condition: template
+          value_template: >-
+            {{ state_attr(fan, 'preset_mode') == 'Home'
+               and (states(outdoor) | float(0)) > (states(indoor) | float(0)) + (margin | float(0)) }}
+      sequence:
+        - action: fan.set_percentage
+          target:
+            entity_id: !input fan_entity
+          data:
+            percentage: !input low_fan_pct
+    - conditions:
+        - condition: template
+          value_template: >-
+            {{ state_attr(fan, 'preset_mode') == 'Home'
+               and (states(outdoor) | float(0)) < (states(indoor) | float(0)) }}
+      sequence:
+        - action: fan.set_percentage
+          target:
+            entity_id: !input fan_entity
+          data:
+            percentage: !input normal_fan_pct
